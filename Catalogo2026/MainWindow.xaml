@@ -1,0 +1,66 @@
+﻿<Window x:Class="Catalogo2026.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Catalogo2026"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+
+    <Grid>
+        <!-- Dividimos la pantalla en 3 filas (arriba, centro y abajo) -->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Fila 0: Para "mi perfil" -->
+            <RowDefinition Height="Auto"/>
+            <!-- Fila 1: Para el menú de TIENDA... -->
+            <RowDefinition Height="*"/>
+            <!-- Fila 2: Todo el resto de la pantalla -->
+        </Grid.RowDefinitions>
+
+        <!-- 1. "mi perfil" arriba a la derecha -->
+        <TextBlock Grid.Row="0" Text="mi perfil" HorizontalAlignment="Right" Margin="0,10,20,10" />
+
+        <!-- 2. Menú superior centrado -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,20">
+            <TextBlock Text="TIENDA" Margin="10,0,10,0" FontWeight="Bold"/>
+            <TextBlock Text="COMUNIDAD" Margin="10,0,10,0" FontWeight="Bold"/>
+            <TextBlock Text="SOPORTE" Margin="10,0,10,0" FontWeight="Bold"/>
+        </StackPanel>
+
+        <!-- 3. Zona inferior (Fila 2) dividida en 2 columnas (Izquierda y Derecha) -->
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150"/>
+                <!-- Columna para el menú izquierdo -->
+                <ColumnDefinition Width="*"/>
+                <!-- Columna para el cuadro grande -->
+            </Grid.ColumnDefinitions>
+
+            <!-- MENÚ LATERAL IZQUIERDO -->
+            <Border Grid.Column="0" BorderBrush="Black" BorderThickness="1.5" CornerRadius="15" Margin="20,0,10,20">
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Destacados" Margin="0,15,0,15" HorizontalAlignment="Center" />
+                    <TextBlock Text="Mis juegos" Margin="0,15,0,15" HorizontalAlignment="Center" />
+                    <TextBlock Text="Configuración" Margin="0,15,0,15" HorizontalAlignment="Center" />
+                </StackPanel>
+            </Border>
+
+            <!-- ZONA CENTRAL DE JUEGOS -->
+            <Border Grid.Column="1" BorderBrush="Black" BorderThickness="1.5" Margin="10,0,20,20">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="20">
+                    <Border BorderBrush="Black" BorderThickness="1.5" Width="80" Height="80" Margin="10">
+                        <TextBlock Text="JUEGO" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <Border BorderBrush="Black" BorderThickness="1.5" Width="80" Height="80" Margin="10">
+                        <TextBlock Text="JUEGO" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <Border BorderBrush="Black" BorderThickness="1.5" Width="80" Height="80" Margin="10">
+                        <TextBlock Text="JUEGO" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+    </Grid>
+</Window>
