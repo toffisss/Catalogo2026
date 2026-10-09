@@ -11,7 +11,7 @@
         <!-- Dividimos la pantalla en 3 filas (arriba, centro y abajo) -->
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <!-- Fila 0: Para "mi perfil" -->
+            <!-- Fila 0: Para "Toffoletti" -->
             <RowDefinition Height="Auto"/>
             <!-- Fila 1: Para el menú de TIENDA... -->
             <RowDefinition Height="*"/>
@@ -19,8 +19,11 @@
         </Grid.RowDefinitions>
 
         <!-- 1. "mi perfil" arriba a la derecha -->
-        <TextBlock Grid.Row="0" Text="mi perfil" HorizontalAlignment="Right" Margin="0,10,20,10" />
-
+        <!-- 1. "mi perfil" y Cerrar sesión arriba a la derecha -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,20,10">
+            <TextBlock Text="mi perfil" VerticalAlignment="Center" Margin="0,0,15,0" FontWeight="SemiBold"/>
+            <Button Content="Cerrar Sesión" Padding="5,2" Click="BtnCerrarSesion_Click"/>
+        </StackPanel>
         <!-- 2. Menú superior centrado -->
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,20">
             <TextBlock Text="TIENDA" Margin="10,0,10,0" FontWeight="Bold"/>
@@ -46,18 +49,25 @@
                 </StackPanel>
             </Border>
 
-            <!-- ZONA CENTRAL DE JUEGOS -->
+            <!-- ZONA CENTRAL DE JUEGOS CON RUTAS CORREGIDAS -->
             <Border Grid.Column="1" BorderBrush="Black" BorderThickness="1.5" Margin="10,0,20,20">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="20">
+
+                    <!-- IMAGEN 1 -->
                     <Border BorderBrush="Black" BorderThickness="1.5" Width="80" Height="80" Margin="10">
-                        <TextBlock Text="JUEGO" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <Image Source="/Imagenes/juego1.jpg" Stretch="UniformToFill" />
                     </Border>
+
+                    <!-- IMAGEN 2 -->
                     <Border BorderBrush="Black" BorderThickness="1.5" Width="80" Height="80" Margin="10">
-                        <TextBlock Text="JUEGO" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <Image Source="/Imagenes/juego2.jpg" Stretch="UniformToFill" />
                     </Border>
+
+                    <!-- IMAGEN 3 -->
                     <Border BorderBrush="Black" BorderThickness="1.5" Width="80" Height="80" Margin="10">
-                        <TextBlock Text="JUEGO" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <Image Source="/Imagenes/juego3.jpg" Stretch="UniformToFill" />
                     </Border>
+
                 </StackPanel>
             </Border>
         </Grid>

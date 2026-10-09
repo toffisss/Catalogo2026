@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Page Include="E:\DAM 2\DesarrolloInterfaces\PrácticaT1\Catalogo\MainWindow.xaml" Link="MainWindow.xaml" />
+    <Page Include="E:\DAM 2\DesarrolloInterfaces\PrácticaT1\Catalogo2026\MainWindow.xaml" Link="MainWindow.xaml" />
   </ItemGroup>
 
   <ItemGroup>
