@@ -8,4 +8,20 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="Imagenes\juego1.jpg" />
+    <None Remove="Imagenes\juego2.jpg" />
+    <None Remove="Imagenes\juego3.jpg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Include="E:\DAM 2\DesarrolloInterfaces\PrácticaT1\Catalogo\MainWindow.xaml" Link="MainWindow.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Imagenes\juego1.jpg" />
+    <Resource Include="Imagenes\juego2.jpg" />
+    <Resource Include="Imagenes\juego3.jpg" />
+  </ItemGroup>
+
 </Project>
