@@ -58,7 +58,7 @@
                         <Image Source="/Imagenes/juego1.jpg" Stretch="UniformToFill" />
                     </Border>
 
-                    <!-- IMAGEN 2 -->
+                    <!-- IMAGEN 2 -->   
                     <Border BorderBrush="Black" BorderThickness="1.5" Width="80" Height="80" Margin="10">
                         <Image Source="/Imagenes/juego2.jpg" Stretch="UniformToFill" />
                     </Border>

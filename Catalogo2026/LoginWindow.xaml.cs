@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Media;
 
@@ -9,12 +10,24 @@ namespace Catalogo2026
         // Matriz bidimensional en memoria simulando la base de datos (Usuario, Contraseña)
         string[,] usuarios = new string[,] { { "admin", "1234" }, { "alumno", "dam2026" } };
 
-        // Diccionario para contar los intentos fallidos de cada usuario
+        const int MaxIntentos = 3;
+        const int SegundosBloqueo = 30;
+
+        // Intentos fallidos de cada usuario
         Dictionary<string, int> intentosUsuario = new Dictionary<string, int>();
+
+        // Momento hasta el que cada usuario permanece bloqueado
+        Dictionary<string, DateTime> bloqueadoHasta = new Dictionary<string, DateTime>();
 
         public LoginWindow()
         {
             InitializeComponent();
+        }
+
+        private void MostrarError(string mensaje)
+        {
+            lblMensaje.Foreground = Brushes.Red;
+            lblMensaje.Text = mensaje;
         }
 
         private void BtnLogin_Click(object sender, RoutedEventArgs e)
@@ -25,17 +38,23 @@ namespace Catalogo2026
             // TC04: No se rellenan los campos
             if (string.IsNullOrEmpty(user) || string.IsNullOrEmpty(pass))
             {
-                lblMensaje.Foreground = Brushes.Red;
-                lblMensaje.Text = "Introduzca usuario y contraseña.";
+                MostrarError("Introduzca usuario y contraseña.");
                 return;
             }
 
-            // Validar si el usuario está bloqueado por intentos previos (TC05 / TC07)
-            if (intentosUsuario.ContainsKey(user) && intentosUsuario[user] >= 3)
+            // TC05: ¿el usuario sigue bloqueado?
+            if (bloqueadoHasta.TryGetValue(user, out DateTime fin))
             {
-                lblMensaje.Foreground = Brushes.Red;
-                lblMensaje.Text = "El usuario está bloqueado temporalmente por exceso de intentos.";
-                return;
+                if (DateTime.Now < fin)
+                {
+                    int restantes = (int)Math.Ceiling((fin - DateTime.Now).TotalSeconds);
+                    MostrarError($"El usuario está bloqueado temporalmente. Inténtelo de nuevo en {restantes} s.");
+                    return;
+                }
+
+                // El bloqueo ya expiró: se reinician los intentos
+                bloqueadoHasta.Remove(user);
+                intentosUsuario[user] = 0;
             }
 
             bool usuarioExiste = false;
@@ -47,53 +66,45 @@ namespace Catalogo2026
                 if (usuarios[i, 0] == user)
                 {
                     usuarioExiste = true;
-
-                    if (usuarios[i, 1] == pass)
-                    {
-                        loginExitoso = true;
-                    }
+                    loginExitoso = usuarios[i, 1] == pass;
                     break;
                 }
             }
 
-            // TC03: Inicio de sesión si usuario no existe
+            // TC03: Usuario no existe
             if (!usuarioExiste)
             {
-                lblMensaje.Foreground = Brushes.Red;
-                lblMensaje.Text = "El usuario introducido no existe.";
+                MostrarError("El usuario introducido no existe.");
                 return;
             }
 
-            // TC02: Inicio de sesión fallido (contraseña incorrecta)
+            // TC02 / TC05: Contraseña incorrecta
             if (!loginExitoso)
             {
-                // Registrar intento fallido
-                if (intentosUsuario.ContainsKey(user))
-                    intentosUsuario[user]++;
+                intentosUsuario[user] = intentosUsuario.GetValueOrDefault(user) + 1;
+                txtPassword.Clear();
+
+                if (intentosUsuario[user] >= MaxIntentos)
+                {
+                    bloqueadoHasta[user] = DateTime.Now.AddSeconds(SegundosBloqueo);
+                    MostrarError($"La contraseña introducida no es correcta. Usuario bloqueado temporalmente {SegundosBloqueo} segundos.");
+                }
                 else
-                    intentosUsuario.Add(user, 1);
-
-                lblMensaje.Foreground = Brushes.Red;
-                lblMensaje.Text = "La contraseña introducida no es correcta.";
+                {
+                    MostrarError($"La contraseña introducida no es correcta. (Intento {intentosUsuario[user]} de {MaxIntentos})");
+                }
+                return;
             }
-            else
-            {
-                // TC01: Inicio de sesión exitoso
-                lblMensaje.Foreground = Brushes.Green;
-                lblMensaje.Text = "Acceso concedido.";
 
-                // Reiniciar intentos
-                if (intentosUsuario.ContainsKey(user))
-                    intentosUsuario[user] = 0;
+            // TC01: Inicio de sesión exitoso
+            intentosUsuario[user] = 0;
 
-                // Redirigir al formulario principal (F_Principal / MainWindow)
-                MainWindow home = new MainWindow();
-                home.Show();
-                this.Close(); // Cerramos la ventana de Login
-            }
+            MainWindow home = new MainWindow();
+            home.Show();
+            this.Close();
         }
 
-        // TC06: Salir de la aplicación
+        // TC07: Salir de la aplicación
         private void BtnSalir_Click(object sender, RoutedEventArgs e)
         {
             Application.Current.Shutdown();
