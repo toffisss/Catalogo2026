@@ -8,7 +8,7 @@ namespace Catalogo2026
     public partial class LoginWindow : Window
     {
         // Matriz bidimensional en memoria simulando la base de datos (Usuario, Contraseña)
-        string[,] usuarios = new string[,] { { "admin", "1234" }, { "alumno", "dam2026" } };
+        string[,] usuarios = new string[,] { { "admin", "1234" }, { "alumno", "dam2026" }, {"profesor", "prof123"} };
 
         const int MaxIntentos = 3;
         const int SegundosBloqueo = 30;
