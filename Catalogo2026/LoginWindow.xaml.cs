@@ -1,17 +1,21 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Media;
+using MySql.Data.MySqlClient;
 
 namespace Catalogo2026
 {
     public partial class LoginWindow : Window
     {
-        // Matriz bidimensional en memoria simulando la base de datos (Usuario, Contraseña)
-        string[,] usuarios = new string[,] { { "admin", "1234" }, { "alumno", "dam2026" }, {"profesor", "prof123"} };
+        // Práctica 3: los usuarios ya no están en memoria, se validan contra
+        // la tabla Usuarios de MySQL (ver DatabaseHelper y database.sql).
 
         const int MaxIntentos = 3;
         const int SegundosBloqueo = 30;
+
+        // Código de error de MySQL cuando se viola una restricción UNIQUE
+        const int ErrorClaveDuplicada = 1062;
 
         // Intentos fallidos de cada usuario
         Dictionary<string, int> intentosUsuario = new Dictionary<string, int>();
@@ -30,19 +34,34 @@ namespace Catalogo2026
             lblMensaje.Text = mensaje;
         }
 
-        private void BtnLogin_Click(object sender, RoutedEventArgs e)
+        private void MostrarExito(string mensaje)
         {
-            string user = txtUsuario.Text.Trim();
-            string pass = txtPassword.Password.Trim();
+            lblMensaje.Foreground = Brushes.Green;
+            lblMensaje.Text = mensaje;
+        }
 
-            // TC04: No se rellenan los campos
+        // Comprueba que los dos campos están rellenos (TC 01). Si falta alguno,
+        // muestra el aviso y no se llega a consultar la base de datos.
+        private bool CamposRellenos(out string user, out string pass)
+        {
+            user = txtUsuario.Text.Trim();
+            pass = txtPassword.Password;
+
             if (string.IsNullOrEmpty(user) || string.IsNullOrEmpty(pass))
             {
                 MostrarError("Introduzca usuario y contraseña.");
-                return;
+                return false;
             }
+            return true;
+        }
 
-            // TC05: ¿el usuario sigue bloqueado?
+        private void BtnLogin_Click(object sender, RoutedEventArgs e)
+        {
+            // TC 01: campos vacíos -> no se consulta la BD
+            if (!CamposRellenos(out string user, out string pass))
+                return;
+
+            // ¿El usuario sigue bloqueado por intentos fallidos?
             if (bloqueadoHasta.TryGetValue(user, out DateTime fin))
             {
                 if (DateTime.Now < fin)
@@ -51,60 +70,98 @@ namespace Catalogo2026
                     MostrarError($"El usuario está bloqueado temporalmente. Inténtelo de nuevo en {restantes} s.");
                     return;
                 }
-
-                // El bloqueo ya expiró: se reinician los intentos
                 bloqueadoHasta.Remove(user);
                 intentosUsuario[user] = 0;
             }
 
-            bool usuarioExiste = false;
-            bool loginExitoso = false;
+            bool loginCorrecto;
 
-            // Recorrer la matriz para buscar coincidencias
-            for (int i = 0; i < usuarios.GetLength(0); i++)
+            try
             {
-                if (usuarios[i, 0] == user)
-                {
-                    usuarioExiste = true;
-                    loginExitoso = usuarios[i, 1] == pass;
-                    break;
-                }
+                using MySqlConnection conexion = DatabaseHelper.AbrirConexion();
+
+                // Consulta PARAMETRIZADA: los datos del usuario nunca se concatenan
+                // en el texto SQL, así que ' OR '1'='1 no funciona (TC 09).
+                const string sql =
+                    "SELECT COUNT(*) FROM Usuarios " +
+                    "WHERE nombre_usuario = @usuario AND password = @password";
+
+                using MySqlCommand comando = new MySqlCommand(sql, conexion);
+                comando.Parameters.AddWithValue("@usuario", user);
+                comando.Parameters.AddWithValue("@password", pass);
+
+                long coincidencias = Convert.ToInt64(comando.ExecuteScalar());
+                loginCorrecto = coincidencias == 1;
             }
-
-            // TC03: Usuario no existe
-            if (!usuarioExiste)
+            catch (MySqlException)
             {
-                MostrarError("El usuario introducido no existe.");
+                // TC 08: MySQL parado o inaccesible -> aviso y la app sigue abierta
+                MostrarError("No se puede conectar con la base de datos. Compruebe que MySQL está en marcha e inténtelo de nuevo.");
                 return;
             }
 
-            // TC02 / TC05: Contraseña incorrecta
-            if (!loginExitoso)
+            if (!loginCorrecto)
             {
+                // TC 04: mismo mensaje tanto si falla el usuario como la contraseña,
+                // para no dar pistas a un atacante sobre qué usuarios existen.
                 intentosUsuario[user] = intentosUsuario.GetValueOrDefault(user) + 1;
                 txtPassword.Clear();
 
                 if (intentosUsuario[user] >= MaxIntentos)
                 {
                     bloqueadoHasta[user] = DateTime.Now.AddSeconds(SegundosBloqueo);
-                    MostrarError($"La contraseña introducida no es correcta. Usuario bloqueado temporalmente {SegundosBloqueo} segundos.");
+                    MostrarError($"Usuario o contraseña incorrectos. Usuario bloqueado temporalmente {SegundosBloqueo} segundos.");
                 }
                 else
                 {
-                    MostrarError($"La contraseña introducida no es correcta. (Intento {intentosUsuario[user]} de {MaxIntentos})");
+                    MostrarError($"Usuario o contraseña incorrectos. (Intento {intentosUsuario[user]} de {MaxIntentos})");
                 }
                 return;
             }
 
-            // TC01: Inicio de sesión exitoso
+            // TC 03 / TC 07: inicio de sesión correcto -> se abre la Home
             intentosUsuario[user] = 0;
 
-            MainWindow home = new MainWindow();
+            MainWindow home = new MainWindow(user);
             home.Show();
             this.Close();
         }
 
-        // TC07: Salir de la aplicación
+        // TC 05 / TC 06: alta de un usuario nuevo en la tabla Usuarios
+        private void BtnNuevoUsuario_Click(object sender, RoutedEventArgs e)
+        {
+            if (!CamposRellenos(out string user, out string pass))
+                return;
+
+            try
+            {
+                using MySqlConnection conexion = DatabaseHelper.AbrirConexion();
+
+                const string sql =
+                    "INSERT INTO Usuarios (nombre_usuario, password) " +
+                    "VALUES (@usuario, @password)";
+
+                using MySqlCommand comando = new MySqlCommand(sql, conexion);
+                comando.Parameters.AddWithValue("@usuario", user);
+                comando.Parameters.AddWithValue("@password", pass);
+                comando.ExecuteNonQuery();
+
+                txtPassword.Clear();
+                MostrarExito($"Usuario «{user}» dado de alta correctamente. Ya puede iniciar sesión.");
+            }
+            catch (MySqlException ex) when (ex.Number == ErrorClaveDuplicada)
+            {
+                // TC 06: nombre_usuario es UNIQUE, MySQL rechaza el duplicado
+                MostrarError("El usuario ya existe.");
+            }
+            catch (MySqlException)
+            {
+                // TC 08: fallo de conexión
+                MostrarError("No se puede conectar con la base de datos. Compruebe que MySQL está en marcha e inténtelo de nuevo.");
+            }
+        }
+
+        // TC 02: Salir de la aplicación
         private void BtnSalir_Click(object sender, RoutedEventArgs e)
         {
             Application.Current.Shutdown();
